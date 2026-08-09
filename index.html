@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel & Revelation: Teacher Script & Shared Student Display</title>
+    <style>
+        :root {
+            --bg-dark: #1a252f;
+            --panel-bg: #2c3e50;
+            --accent: #2980b9;
+            --text-light: #ecf0f1;
+            --text-dark: #333;
+            --border: #34495e;
+            --gold: #b45309;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Header */
+        .global-nav {
+            background: #111827;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .global-nav h1 { margin: 0; font-size: 1.2em; color: #3498db; }
+        .global-nav select {
+            background: #2d3748;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            font-size: 0.9em;
+        }
+
+        /* Side-by-Side Studio Layout */
+        .studio-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            overflow: hidden;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 900px) {
+            .studio-layout { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
+        }
+
+        /* Left Side: Teacher Script Panel */
+        .teacher-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        .teacher-panel h2 { margin-top: 0; color: #f1c40f; font-size: 1.2em; border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
+        .full-script-box {
+            background: #fff;
+            color: var(--text-dark);
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 1em;
+            line-height: 1.6;
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-line;
+        }
+
+        /* Right Side: Shared Student Screen */
+        .student-screen {
+            background: #fff;
+            color: var(--text-dark);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .screen-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .screen-header h2 { margin: 0; color: #2c3e50; font-size: 1.2em; }
+        .live-badge { background: #e74c3c; color: white; padding: 3px 8px; font-size: 0.75em; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        
+        .scripture-box {
+            font-style: italic;
+            background: #fdfefe;
+            border-left: 4px solid var(--accent);
+            padding: 12px;
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 1.02rem;
+            line-height: 1.6;
+        }
+        .scripture-box .vn { font-size: 0.68rem; vertical-align: super; color: var(--gold); font-weight: 700; }
+        
+        .student-content-block {
+            margin-bottom: 15px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        .student-content-block strong { color: #2980b9; display: block; margin-bottom: 4px; }
+        .student-notes-area {
+            margin-top: 15px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+        .student-notes-area textarea {
+            width: 100%;
+            height: 70px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="global-nav">
+        <h1>📖 Teacher Script & Student Shared Screen Hub</h1>
+        <div>
+            <label for="session-select" style="font-size: 0.9em; margin-right: 8px; font-weight: bold;">Select Session:</label>
+            <select id="session-select" onchange="loadSession(this.value)">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+    </div>
+
+    <!-- Side-by-Side Studio Layout -->
+    <div class="studio-layout">
+        
+        <!-- LEFT: TEACHER FULL SCRIPT -->
+        <div class="teacher-panel">
+            <h2>🗣️ Teacher's Full Lecture Script</h2>
+            <div class="full-script-box" id="teacher-full-script">
+                <!-- Complete script loads here -->
+            </div>
+            <div style="font-size: 0.8em; color: #bdc3c7; font-style: italic; text-align: center;">
+                Read this text aloud while your students look at the matching Shared Screen on the right.
+            </div>
+        </div>
+
+        <!-- RIGHT: SHARED STUDENT SCREEN -->
+        <div class="student-screen">
+            <div>
+                <div class="screen-header">
+                    <h2 id="student-screen-title">Daniel Chapter 1 — Daniel's Resolve</h2>
+                    <span class="live-badge">Shared Student View</span>
+                </div>
+
+                <div class="scripture-box" id="student-scripture-display">
+                    <!-- Scripture verses load here -->
+                </div>
+
+                <div class="student-content-block">
+                    <strong>Key Discussion & Study Points</strong>
+                    <div id="student-points-display">
+                        <!-- Points load here -->
+                    </div>
+                </div>
+
+                <div class="student-content-block" id="student-refs-container">
+                    <strong>Cross-References</strong>
+                    <ul id="student-refs-display" style="margin: 0; padding-left: 20px;"></ul>
+                </div>
+            </div>
+
+            <!-- Student interactive note box -->
+            <div class="student-notes-area">
+                <label style="font-size: 0.85em; font-weight: bold; color: #34495e;">My Personal Session Notes:</label>
+                <textarea placeholder="Type your personal notes or questions here..."></textarea>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Full verified script and study data for Daniel and Revelation
+        const DANIEL_ASV = {"1": ["In the third year of the reign of Jehoiakim king of Judah came Nebuchadnezzar king of Babylon unto Jerusalem, and besieged it.", "And the Lord gave Jehoiakim king of Judah into his hand, with part of the vessels of the house of God; and he carried them into the land of Shinar to the house of his god: and he brought the vessels into the treasure-house of his god.", "And the king spake unto Ashpenaz the master of his eunuchs, that he should bring in certain of the children of Israel, even of the seed royal and of the nobles;", "youths in whom was no blemish, but well-favored, and skilful in all wisdom, and endued with knowledge, and understanding science, and such as had ability to stand in the king's palace; and that he should teach them the learning and the tongue of the Chaldeans.", "And the king appointed for them a daily portion of the king's dainties, and of the wine which he drank, and that they should be nourished three years; that at the end thereof they should stand before the king.", "Now among these were, of the children of Judah, Daniel, Hananiah, Mishael, and Azariah.", "And the prince of the eunuchs gave names unto them: unto Daniel he gave the name of Belteshazzar; and to Hananiah, of Shadrach; and to Mishael, of Meshach; and to Azariah, of Abed-nego.", "But Daniel purposed in his heart that he would not defile himself with the king's dainties, nor with the wine which he drank: therefore he requested of the prince of the eunuchs that he might not defile himself.", "Now God made Daniel to find kindness and compassion in the sight of the prince of the eunuchs.", "And the prince of the eunuchs said unto Daniel, I fear my lord the king, who hath appointed your food and your drink: for why should he see your faces worse looking than the youths that are of your own age? so would ye endanger my head with the king.", "Then said Daniel to the steward whom the prince of the eunuchs had appointed over Daniel, Hananiah, Mishael, and Azariah:", "Prove thy servants, I beseech thee, ten days; and let them give us pulse to eat, and water to drink.", "Then let our countenances be looked upon before thee, and the countenance of the youths that eat of the king's dainties; and as thou seest, deal with thy servants.", "So he hearkened unto them in this matter, and proved them ten days.", "And at the end of ten days their countenances appeared fairer, and they were fatter in flesh, than all the youths that did eat of the king's dainties.", "So the steward took away their dainties, and the wine that they should drink, and gave them pulse.", "Now as for these four youths, God gave them knowledge and skill in all learning and wisdom: and Daniel had understanding in all visions and dreams.", "And at the end of the days which the king had appointed for bringing them in, the prince of the eunuchs brought them in before Nebuchadnezzar.", "And the king communed with them; and among them all was found none like Daniel, Hananiah, Mishael, and Azariah: therefore stood they before the king.", "And in every matter of wisdom and understanding, concerning which the king inquired of them, he found them ten times better than all the magicians and enchanters that were in all his realm.", "And Daniel continued even unto the first year of king Cyrus."]};
+
+        const REVELATION_ASV = {"1": ["The Revelation of Jesus Christ, which God gave him to show unto his servants, [even] the things which must shortly come to pass: and he sent and signified [it] by his angel unto his servant John;", "who bare witness of the word of God, and of the testimony of Jesus Christ, [even] of all things that he saw.", "Blessed is he that readeth, and they that hear the words of the prophecy, and keep the things that are written therein: for the time is at hand.", "John to the seven churches that are in Asia: Grace to you and peace, from him who is and who was and who is to come; and from the seven Spirits that are before his throne;", "and from Jesus Christ, [who is] the faithful witness, the firstborn of the dead, and the ruler of the kings of the earth. Unto him that loveth us, and loosed us from our sins by his blood;", "and he made us [to be] a kingdom, [to be] priests unto his God and Father; to him [be] the glory and the dominion for ever and ever. Amen.", "Behold, he cometh with the clouds; and every eye shall see him, and they that pierced him; and all the tribes of the earth shall mourn over him. Even so, Amen.", "I am the Alpha and the Omega, saith the Lord God, who is and who was and who is to come, the Almighty.", "I John, your brother and partaker with you in tribulation and kingdom and patience [which are] in Jesus, was in the isle that is called Patmos, for the word of God and the testimony of Jesus.", "I was in the Spirit on the Lord's day, and I heard behind me a great voice, as of a trumpet", "saying, What thou seest, write in a book and send [it] to the seven churches: unto Ephesus, and unto Smyrna, and unto Pergamum, and unto Thyatira, and unto Sardis, and unto Philadelphia, and unto Laodicea.", "And I turned to see the voice that spake with me. And having turned I saw seven golden candlesticks;", "and in the midst of the candlesticks one like unto a son of man, clothed with a garment down to the foot, and girt about at the breasts with a golden girdle.", "And his head and his hair were white as white wool, [white] as snow; and his eyes were as a flame of fire;", "and his feet like unto burnished brass, as if it had been refined in a furnace; and his voice as the voice of many waters.", "And he had in his right hand seven stars: and out of his mouth proceeded a sharp two-edged sword: and his countenance was as the sun shineth in his strength.", "And when I saw him, I fell at his feet as one dead. And he laid his right hand upon me, saying, Fear not; I am the first and the last,", "and the Living one; and I was dead, and behold, I am alive for evermore, and I have the keys of death and of Hades.", "Write therefore the things which thou sawest, and the things which are, and the things which shall come to pass hereafter;", "the mystery of the seven stars which thou sawest in my right hand, and the seven golden candlesticks. The seven stars are the angels of the seven churches: and the seven candlesticks are seven churches."]};
+
+        const FULL_SESSIONS = [
+            {
+                book: "Daniel", chNum: "1", label: "Chapter 1 — Daniel's Resolve",
+                script: "Good morning, everyone. Welcome to our study. Today we are opening Daniel Chapter 1. \n\nNotice right away how Babylon operated. They didn't just conquer Jerusalem with swords; they tried to conquer hearts and minds through complete assimilation. They changed the youths' names to honor pagan gods—Belteshazzar, Shadrach, Meshach, Abed-nego—a real, documented imperial practice meant to overwrite identity[span_0](start_span)[span_0](end_span). \n\nThen came the king's food. Daniel's refusal in verse 8 wasn't about being picky or just following diet rules; that food had been sacrificed to idols first. Eating it meant active participation in pagan worship[span_1](start_span)[span_1](end_span). Daniel drew his hard line there while still serving faithfully in their schools. Let's look at the text together and unpack how this applies to our walk today.",
+                points: [
+                    "Daniel's refusal of the king's food (1:8) is about covenant loyalty, not dietary law alone. The 'king's meat' would have been offered to Babylonian gods first — eating it meant participating in pagan worship[span_2](start_span)[span_2](end_span).",
+                    "The names Daniel and his friends are given (1:7) all embed Babylonian gods — Belteshazzar ('Bel's prince'), Shadrach, Meshach, Abednego — a real, documented Babylonian practice of renaming captives to erase their identity and claim them for the empire's gods[span_3](start_span)[span_3](end_span)."
+                ],
+                refs: ["Leviticus 11 — the dietary laws behind Daniel's specific concern, though the deeper issue is the food's pagan dedication[span_4](start_span)[span_4](end_span)."]
+            },
+            {
+                book: "Daniel", chNum: "2", label: "Chapter 2 — Nebuchadnezzar's Statue Dream",
+                script: "Today we are looking at Daniel Chapter 2, where King Nebuchadnezzar has a troubling dream about a great multi-metal statue[span_5](start_span)[span_5](end_span). \n\nThis chapter serves as the master blueprint for biblical prophecy. The gold, silver, bronze, and iron represent successive world empires—Babylon, Medo-Persia, Greece, and Rome[span_6](start_span)[span_6](end_span). But notice the climax: a stone cut without human hands smashes the feet and becomes a mountain filling the earth[span_7](start_span)[span_7](end_span). \n\nCrucially, notice how the book shifts languages right here in verse 4: it moves from Hebrew to Aramaic, the actual diplomatic language of the Gentile empires, before returning to Hebrew later[span_8](start_span)[span_8](end_span). Let's examine how this lays the foundation for Revelation's beast imagery.",
+                points: [
+                    "This is the direct blueprint for Revelation's beasts. The four metals — gold, silver, bronze, iron — represent successive kingdoms (Babylon, Medo-Persia, Greece, Rome)[span_9](start_span)[span_9](end_span).",
+                    "The stone 'cut without hands' that crushes the statue and becomes a mountain filling the earth (2:34-35, 44-45) is the direct source for mountain-as-kingdom language throughout Revelation[span_10](start_span)[span_10](end_span)."
+                ],
+                refs: ["Revelation 13, 17 — the beast imagery and mountain-as-kingdom language both trace directly back to this chapter[span_11](start_span)[span_11](end_span)."]
+            },
+            {
+                book: "Revelation", chNum: "1", label: "Revelation Chapter 1 — Prologue & Vision of Christ",
+                script: "Today we begin the Book of Revelation, Chapter 1[span_12](start_span)[span_12](end_span). \n\nNotice the very first word in the Greek text: *Apokalypsis*, meaning an 'unveiling' or disclosure, not a secret code book meant to hide things[span_13](start_span)[span_13](end_span). John addresses seven real, physical churches in the Roman province of Asia[span_14](start_span)[span_14](end_span). \n\nWhen John sees Christ standing among the lampstands, every description—His hair like wool, His eyes like a flame of fire—pulls directly from Daniel 7 and Exodus[span_15](start_span)[span_15](end_span). John is teaching us our golden rule: to understand Revelation, we must let Scripture interpret Scripture by looking back at the Old Testament.",
+                points: [
+                    "The book names itself apokalypsis — 'unveiling,' disclosure, not concealment. The seven churches (1:4) are real, named, addressed congregations in Roman Asia[span_16](start_span)[span_16](end_span).",
+                    "The description of Christ draws directly on Daniel 7 (Ancient of Days / Son of man) and Daniel 10 (eyes like flame, feet like burnished brass)[span_17](start_span)[span_17](end_span)."
+                ],
+                refs: ["Daniel 7 & 10 — court-of-heaven and glorious-man imagery behind the Christ-vision[span_18](start_span)[span_18](end_span)."]
+            }
+        ];
+
+        // Populate dropdown
+        const selectEl = document.getElementById('session-select');
+        FULL_SESSIONS.forEach((s, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = s.label;
+            selectEl.appendChild(opt);
+        });
+
+        function loadSession(index) {
+            const s = FULL_SESSIONS[index];
+            
+            // 1. Load Teacher Full Script
+            document.getElementById('teacher-full-script').innerText = s.script;
+
+            // 2. Load Shared Student Screen Title & Points
+            document.getElementById('student-screen-title').innerText = s.label;
+            
+            // Load Scripture Box
+            let scriptures = "";
+            let verses = null;
+            if (s.book === 'Daniel' && DANIEL_ASV[s.chNum]) verses = DANIEL_ASV[s.chNum];
+            if (s.book === 'Revelation' && REVELATION_ASV[s.chNum]) verses = REVELATION_ASV[s.chNum];
+
+            if (verses) {
+                scriptures = verses.map((v, i) => `<span class="vn">${i+1}</span> ${v} `).join('');
+            } else {
+                scriptures = `<em>Reading passage from ${s.book} Chapter ${s.chNum} (Follow along in your Bible or study sheet).</em>`;
+            }
+            document.getElementById('student-scripture-display').innerHTML = scriptures;
+
+            // Load Points
+            const pointsEl = document.getElementById('student-points-display');
+            pointsEl.innerHTML = s.points.map(p => `<p style="margin: 0 0 8px 0;">• ${p}</p>`).join('');
+
+            // Load Refs
+            const refsContainer = document.getElementById('student-refs-container');
+            const refsEl = document.getElementById('student-refs-display');
+            if (s.refs && s.refs.length > 0) {
+                refsContainer.style.display = "block";
+                refsEl.innerHTML = s.refs.map(r => `<li>${r}</li>`).join('');
+            } else {
+                refsContainer.style.display = "none";
+            }
+        }
+
+        // Initial Load
+        loadSession(0);
+    </script>
+</body>
+</html>
