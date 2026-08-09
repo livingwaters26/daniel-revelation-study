@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel & Revelation: Zoom & Classroom Study Hub</title>
+    <style>
+        :root {
+            --bg-dark: #111827;
+            --panel-bg: #1f2937;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-light: #f3f4f6;
+            --text-dark: #1f2937;
+            --gold: #d97706;
+            --border: #374151;
+        }
+        body {
+            font-family: Georgia, serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* --- GLOBAL NAVIGATION --- */
+        .global-nav {
+            background: #0f172a;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            font-family: -apple-system, sans-serif;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .global-nav h1 { margin: 0; font-size: 1.3em; color: #60a5fa; }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        select {
+            background: #334155;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 1em;
+            cursor: pointer;
+            max-width: 300px;
+        }
+        .mode-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .mode-btn.active { background: var(--accent); }
+        .mode-btn:hover { background: var(--accent-hover); }
+
+        /* --- VIEWS --- */
+        .view-container { display: none; flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .view-container.active { display: block; }
+
+        /* --- STUDENT NOTES --- */
+        .student-notes {
+            margin-top: 30px;
+            border-top: 2px dashed #cbd5e1;
+            padding-top: 20px;
+            font-family: -apple-system, sans-serif;
+        }
+        .student-notes textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #94a3b8;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            resize: vertical;
+            background: #f8fafc;
+        }
+
+        /* --- TEACHER VIEW --- */
+        .teacher-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        @media (max-width: 900px) { .teacher-layout { grid-template-columns: 1fr; } }
+        
+        .script-panel, .preview-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            height: calc(100vh - 130px);
+            overflow-y: auto;
+        }
+        .script-panel h2 { color: var(--gold); margin-top: 0; font-family: -apple-system, sans-serif; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        
+        .script-text { font-size: 1.15em; line-height: 1.8; color: #e5e7eb; }
+        .script-text strong { color: #93c5fd; }
+        .script-text h3 { color: #60a5fa; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #374151; padding-bottom: 5px; }
+        
+        /* Teacher Scripture Box */
+        .teacher-scripture-box {
+            background: #fffbeb;
+            color: #1a1408;
+            border-left: 5px solid var(--gold);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 1.1em;
+            line-height: 1.7;
+            font-style: italic;
+        }
+        .teacher-scripture-box .vn { font-size: 0.7em; font-weight: bold; color: var(--accent); vertical-align: super; margin-right: 3px; }
+        .teacher-scripture-box h4 { margin-top: 0; color: var(--gold); font-family: -apple-system, sans-serif; font-style: normal; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.05em; border-bottom: 1px solid #fcd34d; padding-bottom: 5px; }
+
+        /* --- ZOOM PRESENTATION & STUDENT SHARED STYLES --- */
+        .presentation-card {
+            background: white;
+            color: var(--text-dark);
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-size: 1.1em;
+            line-height: 1.7;
+        }
+        .presentation-card h1 { color: #1e3a8a; border-bottom: 3px solid var(--gold); padding-bottom: 10px; margin-top: 0; }
+        .point-block { background: #f8fafc; border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; border-radius: 0 6px 6px 0; }
+        .open-block { background: #fffbeb; border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 15px; border-radius: 0 6px 6px 0; }
+        
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <div class="global-nav">
+        <h1>📖 Study Hub: Daniel & Revelation</h1>
+        <div class="controls">
+            <select id="session-select" onchange="loadSession(this.value)"></select>
+            <button class="mode-btn active" id="btn-student" onclick="switchMode('student')">📝 Student Follow-Along</button>
+            <button class="mode-btn" id="btn-teacher" onclick="switchMode('teacher')">🔒 Teacher Script</button>
+            <button class="mode-btn" id="btn-zoom" onclick="switchMode('zoom')">🔒 Zoom Presentation Screen</button>
+        </div>
+    </div>
+
+    <!-- 1. STUDENT VIEW -->
+    <div id="view-student" class="view-container active">
+        <div class="presentation-card">
+            <div id="student-content"></div>
+            <div class="student-notes">
+                <h3 style="margin-top: 0; color: #334155;">My Personal Notes:</h3>
+                <textarea placeholder="Type your thoughts, questions, and insights here as the session happens..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TEACHER VIEW (Script + Preview) -->
+    <div id="view-teacher" class="view-container">
+        <div class="teacher-layout">
+            <div class="script-panel">
+                <h2>🗣️ 60-Minute Lesson Script</h2>
+                
+                <!-- Intro Section -->
+                <div class="script-text" id="teacher-intro"></div>
+                
+                <!-- Scripture Reading Box -->
+                <div class="teacher-scripture-box" id="teacher-scripture">
+                    <h4>📖 Read Aloud</h4>
+                    <div id="teacher-scripture-text"></div>
+                </div>
+
+                <!-- Lesson Body Section -->
+                <div class="script-text" id="teacher-lesson-body"></div>
+
+            </div>
+            <div class="preview-panel">
+                <h2 style="color: #60a5fa; margin-top: 0; font-family: -apple-system, sans-serif;">👁️ Screen Preview</h2>
+                <div class="presentation-card" id="teacher-preview-content" style="padding: 20px; font-size: 0.9em; box-shadow: none; border: 1px solid #cbd5e1;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ZOOM PRESENTATION VIEW (Clean Screen Share) -->
+    <div id="view-zoom" class="view-container">
+        <div class="presentation-card" id="zoom-content"></div>
+    </div>
+
+<script>
+    // --- SCRIPTURE DATABASE ---
+    const SCRIPTURES = {
+        "Daniel 1": [
+            "In the third year of the reign of Jehoiakim king of Judah came Nebuchadnezzar king of Babylon unto Jerusalem, and besieged it.",
+            "And the Lord gave Jehoiakim king of Judah into his hand, with part of the vessels of the house of God; and he carried them into the land of Shinar to the house of his god: and he brought the vessels into the treasure-house of his god.",
+            "And the king spake unto Ashpenaz the master of his eunuchs, that he should bring in certain of the children of Israel, even of the seed royal and of the nobles;",
+            "youths in whom was no blemish, but well-favored, and skilful in all wisdom, and endued with knowledge, and understanding science, and such as had ability to stand in the king's palace; and that he should teach them the learning and the tongue of the Chaldeans.",
+            "And the king appointed for them a daily portion of the king's dainties, and of the wine which he drank, and that they should be nourished three years; that at the end thereof they should stand before the king.",
+            "Now among these were, of the children of Judah, Daniel, Hananiah, Mishael, and Azariah.",
+            "And the prince of the eunuchs gave names unto them: unto Daniel he gave the name of Belteshazzar; and to Hananiah, of Shadrach; and to Mishael, of Meshach; and to Azariah, of Abed-nego.",
+            "But Daniel purposed in his heart that he would not defile himself with the king's dainties, nor with the wine which he drank: therefore he requested of the prince of the eunuchs that he might not defile himself."
+        ],
+        "Daniel 2": [
+            "And in the second year of the reign of Nebuchadnezzar, Nebuchadnezzar dreamed dreams; and his spirit was troubled, and his sleep went from him.",
+            "Then the king commanded to call the magicians, and the enchanters, and the sorcerers, and the Chaldeans, to tell the king his dreams. So they came in and stood before the king.",
+            "And the king said unto them, I have dreamed a dream, and my spirit is troubled to know the dream.",
+            "Then spake the Chaldeans to the king in the Syrian language, O king, live for ever: tell thy servants the dream, and we will show the interpretation.",
+            "The king answered and said to the Chaldeans, The thing is gone from me: if ye make not known unto me the dream and the interpretation thereof, ye shall be cut in pieces, and your houses shall be made a dunghill.",
+            "But if ye show the dream and the interpretation thereof, ye shall receive of me gifts and rewards and great honor: therefore show me the dream and the interpretation thereof."
+        ],
+        "Revelation 1": [
+            "The Revelation of Jesus Christ, which God gave him to show unto his servants, even the things which must shortly come to pass: and he sent and signified it by his angel unto his servant John;",
+            "who bare witness of the word of God, and of the testimony of Jesus Christ, even of all things that he saw.",
+            "Blessed is he that readeth, and they that hear the words of the prophecy, and keep the things that are written therein: for the time is at hand.",
+            "John to the seven churches that are in Asia: Grace to you and peace, from him who is and who was and who is to come; and from the seven Spirits that are before his throne;",
+            "and from Jesus Christ, who is the faithful witness, the firstborn of the dead, and the ruler of the kings of the earth. Unto him that loveth us, and loosed us from our sins by his blood;",
+            "and he made us to be a kingdom, to be priests unto his God and Father; to him be the glory and the dominion for ever and ever. Amen."
+        ]
+    };
+
+    // --- FULL LESSON DATABASE ---
+    const SESSIONS = [
+        {
+            label: "Daniel Chapter 1 — The Siege on Identity",
+            readingRef: "Daniel 1",
+            intro: `Good morning, everyone. Today we begin the book of Daniel, and we start right in the fires of cultural exile. 
+
+To understand what is happening here, we must set the stage. The year is 605 BC. King Nebuchadnezzar of Babylon has just besieged Jerusalem. But Nebuchadnezzar is a master tactician; he doesn't just want to destroy the city. He wants to absorb it. His strategy is to capture the best, brightest, and most promising young men from the royal families and bring them to Babylon. 
+
+Before we unpack his psychological warfare, let's read the text together.`,
+            
+            body: `### The Strategy of Assimilation
+Notice verses 3 through 5. Nebuchadnezzar isn't just throwing these young men into a dungeon. He enrolls them in a three-year Babylonian university program. He wants to teach them the language, the literature, and the worldview of the Chaldeans. He wants them to stop thinking like Hebrews and start thinking like Babylonians.
+
+### The Assault on Identity
+The ultimate psychological warfare happens in verse 7: the renaming. In the ancient world, your name was your identity and your theology. 
+• **Daniel** means "God is my judge." They change his name to **Belteshazzar**, meaning "Bel protect his life" (Bel being a chief Babylonian god).
+• **Hananiah** means "Yahweh is gracious." They change it to **Shadrach**, meaning "Command of Aku" (the moon god).
+
+They systematically stripped the name of the true God, Yahweh, out of their identities and replaced it with pagan idols. 
+
+### Drawing the Line
+But notice what happens in verse 8. Daniel and his friends accept the Babylonian education. They accept the new legal names. But Daniel draws a hard, non-negotiable line: *he resolves not to defile himself with the king's food and wine.* 
+
+Why the food? This wasn't just about Jewish dietary laws. In the ancient world, the meat and wine from the king's table were first offered as sacrifices to the Babylonian gods. To eat that food was to sit in fellowship with those idols. Daniel essentially says, "You can change my address, you can change my curriculum, and you can even change my legal name, but you cannot have my worship." 
+
+### The Result of Faithfulness
+Daniel responds with polite, respectful, but absolute resistance. And God honors that faithfulness. As the chapter concludes, God grants them not just physical health, but supernatural wisdom—finding them ten times better than all the magicians and enchanters in the realm.
+
+As we look at our own lives today, we have to ask ourselves: Where is the culture trying to quietly rename us? And where are we drawing our absolute line of faith? Let's move into our discussion.`,
+            
+            points: [
+                "**The Strategy of Assimilation (1:3-5):** Babylon didn't just want captives; they wanted the minds of the next generation. They immersed the Hebrew youths in Chaldean culture to erase their heritage.",
+                "**The Assault on Identity (1:7):** The renaming was psychological warfare, replacing the name of Yahweh with the names of Babylonian gods (Bel, Aku).",
+                "**Drawing the Line (1:8):** Daniel accepted the education but refused the king's food. The 'king's meat' was sacrificed to idols; eating it was an act of pagan worship.",
+                "**The Result (1:12-17):** God honors their faithful resistance by granting them supernatural wisdom—ten times better than Babylon's best."
+            ],
+            refs: [
+                "Leviticus 11 — The dietary laws that formed the baseline of Daniel's concern.",
+                "1 Corinthians 10:20-21 — The New Testament parallel on why eating food offered to idols compromises fellowship with God."
+            ],
+            opens: [
+                "Daniel and his friends accepted the education and names, but drew a hard line at the food. In our culture today, how do we discern the difference between 'harmless cultural participation' and 'spiritual compromise'?",
+                "Was Daniel's 10-day test meant as a repeatable principle for us today, or a one-time sign for his specific situation?"
+            ]
+        },
+        {
+            label: "Daniel Chapter 2 — The Dream of Empires",
+            readingRef: "Daniel 2",
+            intro: `Welcome back, everyone. Today we are looking at Daniel Chapter 2, and we start with a sleepless, terrified king. 
+
+Imagine being Nebuchadnezzar. You are the most powerful dictator on the planet. You have conquered the known world. But you wake up in a cold sweat from a dream that you can't even remember. Let's read how he handles this crisis.`,
+            
+            body: `### The Crisis of Worldly Wisdom
+Nebuchadnezzar does something unprecedented. He calls in all his elite astrologers and makes an impossible demand: "Don't just interpret the dream. Tell me *what* I dreamed, or you die." 
+
+The Chaldeans admit the truth in verse 11: "No one can do this except the gods, and they don't live among humans." Worldly wisdom completely bankrupts itself right here. The best the empire has to offer has absolutely no answers.
+
+### Daniel's Faithful Response
+When the death squad comes to execute the wise men, Daniel doesn't panic. He asks for time, and then does the most important thing a leader can do: he gathers his three friends for a prayer meeting to plead for mercy. He doesn't rely on his intellect; he relies on revelation.
+
+### The Blueprint of Human Empires
+God reveals the dream. Nebuchadnezzar saw a massive statue. 
+• A head of **gold** (Babylon).
+• Chest and arms of **silver** (Medo-Persia).
+• Belly and thighs of **bronze** (Greece).
+• Legs of **iron** with feet of iron/clay (Rome). 
+    
+This statue serves as the master blueprint for biblical prophecy. The rest of Daniel, and later Revelation, will build heavily on this sequence of empires. 
+
+### The Stone Cut Without Hands
+The climax of the dream isn't the metals. It's the stone. A stone "cut out without hands" strikes the statue on its fragile feet, shattering human history into dust, and grows into a mountain filling the earth. 
+    
+That stone is the Kingdom of God, inaugurated by Jesus Christ. Human empires look incredibly intimidating, but Christ's kingdom is the only one that is eternal.`,
+            points: [
+                "**The Bankruptcy of Babylon (2:1-11):** The world's elite wisdom completely fails. The Chaldeans admit only God can reveal the truth.",
+                "**The Power of Corporate Prayer (2:17-18):** Daniel doesn't face the crisis alone; he calls his community to plead for God's mercy.",
+                "**The Prophetic Blueprint (2:31-40):** The four metals represent four successive world empires: Babylon, Medo-Persia, Greece, and Rome.",
+                "**The Unstoppable Kingdom (2:34-35):** The stone 'cut without hands' is the Kingdom of God. It shatters human systems and grows to fill the earth."
+            ],
+            refs: [
+                "Revelation 13 & 17 — The beast imagery and the 'mountain as a kingdom' language trace directly back to this specific dream.",
+                "Matthew 21:44 — Jesus refers to Himself as the stone that crushes those it falls on, echoing Daniel 2."
+            ],
+            opens: [
+                "Does the fourth kingdom (iron and clay) point to historic Rome specifically, or a future, revived global empire?",
+                "When facing a death sentence, Daniel's first response was to gather friends and pray. How does our modern response to sudden crisis compare?"
+            ]
+        },
+        {
+            label: "Revelation Chapter 1 — Vision of the Conquering King",
+            readingRef: "Revelation 1",
+            intro: `Welcome to our first session in the Book of Revelation. Let's start by clearing the air: this is arguably the most misunderstood book in the entire Bible. 
+
+People read it like a horror movie or a secret code book. But look at the very first word in the Greek text: *Apokalypsis*. It means an "unveiling." This book isn't meant to hide the truth in shadows; it is meant to reveal Jesus Christ in all His glory to a hurting church. Let's read the opening verses.`,
+            
+            body: `### A Pastoral Letter to Hurting People
+We have to remember the context. The Apostle John is writing this around 95 AD from exile on the prison island of Patmos. He is writing to seven real, physical churches in the Roman province of Asia. 
+
+These believers are facing real persecution, economic boycotts, and the intense, dangerous pressure to worship the Roman emperor. John is writing a pastoral letter to give them spine, courage, and hope.
+
+### The Glorified Christ
+When John hears a voice like a trumpet and turns around, he doesn't see the suffering servant of the Gospels. He sees the conquering King. 
+
+His hair is white like wool, His eyes are like a flame of fire, His feet are like burnished bronze. If you have been with us through Daniel, you should recognize this! John is pulling directly from Daniel Chapter 7 and 10. This gives us our golden rule for this entire study: **The key to unlocking Revelation is the Old Testament.** 
+
+### The Keys to Death and Hades
+Look at Jesus' incredible words to John: "I died, and behold I am alive forevermore, and I have the keys of Death and Hades." 
+
+To a persecuted church facing execution by the Roman Empire, there is absolutely no greater comfort. Rome might hold the keys to the prison cells, but Jesus holds the ultimate keys to life and death.`,
+            points: [
+                "**An Unveiling, Not a Code (1:1):** The Greek word *Apokalypsis* means to reveal. The primary purpose of the book is to reveal the victorious Jesus Christ.",
+                "**Real Letters to Real People (1:4):** John is writing to seven literal, historical congregations facing severe Roman persecution.",
+                "**The Old Testament Connection (1:12-16):** The vivid description of Jesus draws directly on the Old Testament, specifically the Book of Daniel.",
+                "**Absolute Authority (1:17-18):** Jesus declares He holds the 'keys of Death and Hades.' The Roman Empire does not have the final say; the risen Christ does."
+            ],
+            refs: [
+                "Daniel 7:9, 13 — The 'Ancient of Days' imagery with hair like pure wool and the 'Son of Man' title.",
+                "Daniel 10:5-6 — The vision of the man with eyes like flaming torches and feet like burnished bronze."
+            ],
+            opens: [
+                "Verse 3 promises a blessing to those who read, hear, and 'keep' the words of this prophecy. How do we practically 'keep' or obey a book filled with apocalyptic visions?",
+                "Does verse 19 function as the book's strict chronological outline, or is it a general prophetic statement?"
+            ]
+        }
+    ];
+
+    // Build Dropdown
+    const select = document.getElementById('session-select');
+    SESSIONS.forEach((s, index) => {
+        const opt = document.createElement('option');
+        opt.value = index;
+        opt.textContent = `Session ${index + 1}: ${s.label}`;
+        select.appendChild(opt);
+    });
+
+    // Formatting Engine: Turns **text** into bold and ### into nice headers
+    function parseMarkdown(text) {
+        if (!text) return "";
+        let formatted = text.replace(/\n/g, '<br>');
+        formatted = formatted.replace(/### (.*?)(<br>|$)/g, '<h3 style="color:#60a5fa; margin-top:25px; margin-bottom:10px; border-bottom:1px solid #374151; padding-bottom:5px;">$1</h3>');
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        return formatted;
+    }
+
+    // Format Scripture Verses for Reading Box
+    function getScriptureHtml(refKey) {
+        const verses = SCRIPTURES[refKey];
+        if (!verses) return "<em>(Scripture text not loaded for this chapter yet. Read from your Bible.)</em>";
+        
+        return verses.map((v, i) => `<span class="vn">${i+1}</span> ${v} `).join('');
+    }
+
+    // Generate the Clean Display HTML for Zoom/Students
+    function generateDisplay(session) {
+        let html = `<h1>${session.label}</h1>`;
+        
+        html += `<h3 style="color:#2563eb;">Key Truths:</h3>`;
+        session.points.forEach(p => { html += `<div class="point-block">${parseMarkdown(p)}</div>`; });
+        
+        if (session.refs && session.refs.length > 0) {
+            html += `<h3 style="color:#7c3aed; margin-top:25px;">Cross References:</h3>`;
+            html += `<ul style="line-height: 1.8;">`;
+            session.refs.forEach(r => { html += `<li>${parseMarkdown(r)}</li>`; });
+            html += `</ul>`;
+        }
+
+        if (session.opens && session.opens.length > 0) {
+            html += `<h3 style="color:#d97706; margin-top:25px;">Open Discussion:</h3>`;
+            session.opens.forEach(o => { html += `<div class="open-block">${parseMarkdown(o)}</div>`; });
+        }
+        
+        return html;
+    }
+
+    function loadSession(index) {
+        const s = SESSIONS[index];
+        
+        // 1. Load Teacher Script Segments
+        document.getElementById('teacher-intro').innerHTML = parseMarkdown(s.intro);
+        
+        document.getElementById('teacher-scripture-text').innerHTML = getScriptureHtml(s.readingRef);
+        
+        document.getElementById('teacher-lesson-body').innerHTML = parseMarkdown(s.body);
+        
+        // 2. Load Displays (Preview, Zoom, and Student all share the same clean display layout)
+        const displayHTML = generateDisplay(s);
+        document.getElementById('teacher-preview-content').innerHTML = displayHTML;
+        document.getElementById('zoom-content').innerHTML = displayHTML;
+        document.getElementById('student-content').innerHTML = displayHTML;
+    }
+
+    // Security Logic
+    let isTeacherUnlocked = false;
+
+    function switchMode(mode) {
+        // Password Check for Teacher and Zoom areas
+        if ((mode === 'teacher' || mode === 'zoom') && !isTeacherUnlocked) {
+            const password = prompt("Enter Teacher Password to unlock presentation tools:");
+            if (password === "1234") {
+                isTeacherUnlocked = true;
+                document.getElementById('btn-teacher').innerText = "🧑‍🏫 Teacher Script";
+                document.getElementById('btn-zoom').innerText = "📺 Zoom Presentation Screen";
+            } else {
+                alert("Incorrect password. Returning to Student view.");
+                return;
+            }
+        }
+
+        // Handle Buttons
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + mode).classList.add('active');
+
+        // Handle Views
+        document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
+        document.getElementById('view-' + mode).classList.add('active');
+    }
+
+    // Initial Load
+    loadSession(0);
+</script>
+
+</body>
+</html>
