@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel & Revelation: Master Study Hub & Live Studio</title>
+    <style>
+        :root {
+            --bg-dark: #1a252f;
+            --panel-bg: #2c3e50;
+            --accent: #2980b9;
+            --text-light: #ecf0f1;
+            --text-dark: #333;
+            --border: #34495e;
+            --gold: #b45309;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Global Navigation Bar */
+        .global-nav {
+            background: #111827;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+        .global-nav h1 { margin: 0; font-size: 1.2em; color: #3498db; }
+        .mode-buttons { display: flex; gap: 8px; align-items: center; }
+        .mode-buttons button, .global-nav select {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .mode-buttons button.secondary { background: #374151; }
+        .mode-buttons button:hover, .global-nav select:hover { background: #3498db; }
+        .global-nav select { background: #2d3748; }
+
+        /* View Containers */
+        .app-view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+        .app-view.active { display: flex; }
+
+        /* --- MODE 1: TEACHER CONTROL CENTER STUDIO --- */
+        .teacher-studio {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 15px;
+            flex: 1;
+            overflow: hidden;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 900px) {
+            .teacher-studio { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
+        }
+        .control-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        .control-section {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent);
+        }
+        .control-section h3 { margin: 0 0 5px 0; font-size: 1em; color: #f1c40f; }
+        .script-box-teacher {
+            background: #fff;
+            color: var(--text-dark);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            line-height: 1.5;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        .click-guide {
+            background: #27ae60;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .nav-buttons-studio {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+        .nav-buttons-studio button {
+            flex: 1;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .live-screen {
+            background: #fff;
+            color: var(--text-dark);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .screen-header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .screen-header h2 { margin: 0; color: #2c3e50; font-size: 1.3em; }
+        .live-badge { background: #e74c3c; color: white; padding: 3px 8px; font-size: 0.75em; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .screen-body {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            flex: 1;
+        }
+        @media (max-width: 800px) { .screen-body { grid-template-columns: 1fr; } }
+        .scripture-display {
+            font-style: italic;
+            background: #fdfefe;
+            border-left: 4px solid var(--accent);
+            padding: 12px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .data-point { margin-bottom: 12px; font-size: 0.95em; }
+        .data-point strong { color: #2980b9; display: block; margin-bottom: 3px; }
+        .visual-display-box {
+            background: #f8f9f9;
+            border: 1px solid #d5dbdb;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            height: fit-content;
+        }
+
+        /* --- MODE 2: DATABASE STUDY PLANNER (CLASS SESSIONS) --- */
+        .db-container {
+            background: #f4f0e6;
+            color: #1a1408;
+            font-family: Georgia, serif;
+            overflow-y: auto;
+            flex: 1;
+            padding: 20px;
+        }
+        .db-wrap { max-width: 800px; margin: 0 auto; padding-bottom: 60px; }
+        .session-head { text-align: center; margin-bottom: 20px; }
+        .session-head .eyebrow { font-family:-apple-system,sans-serif; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); font-weight:700; }
+        .session-head h1 { font-size: 1.7rem; margin: 6px 0; color: #1a1408; }
+        .session-head .meta { font-family:-apple-system,sans-serif; font-size:0.8rem; color:#6b5c3c; }
+        .block { background:#fff; border-radius:10px; padding:18px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+        .block-label { font-family:-apple-system,sans-serif; font-size:0.66rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+        .block-label .time { margin-left:auto; background:#f4f0e6; padding:2px 10px; border-radius:999px; font-size:0.66rem; }
+        .block.reading .block-label { color:var(--accent); }
+        .block.discuss .block-label { color:var(--gold); }
+        .block.cross .block-label { color:#7c3aed; }
+        .block.open .block-label { color:#d97706; }
+        .scripture-link { display:inline-block; background:var(--accent); color:#fff; text-decoration:none; padding:10px 16px; border-radius:8px; font-family:-apple-system,sans-serif; font-size:0.85rem; font-weight:700; }
+        .scripture-text { font-size:1.02rem; line-height:1.75; color: #1a1408; }
+        .scripture-text .vn { font-size:0.68rem; vertical-align:super; color:var(--gold); font-weight:700; }
+        .teacher-note { background:#fff8e8; border-left:3px solid var(--gold); padding:10px 14px; margin-top:12px; font-family:-apple-system,sans-serif; font-size:0.8rem; font-style:italic; color:#6b5c3c; }
+        .point { margin-bottom:12px; line-height:1.6; }
+        ul.refs { margin:0; padding-left:20px; }
+        ul.refs li { margin-bottom:8px; line-height:1.5; }
+        .nav-row { display:flex; gap:10px; margin-top:20px; }
+        .nav-row button { flex:1; padding:12px; border-radius:8px; border:1px solid #ccc; background:#fff; font-family:-apple-system,sans-serif; font-weight:700; cursor:pointer; color: #333; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP GLOBAL NAVIGATION BAR -->
+    <div class="global-nav">
+        <h1>📖 Daniel & Revelation Study Hub</h1>
+        <div class="mode-buttons">
+            <select id="global-session-jump" onchange="jumpToSession(this.value)">
+                <!-- Populated dynamically -->
+            </select>
+            <button onclick="switchMode('teacher')">Live Studio</button>
+            <button class="secondary" onclick="switchMode('database')">Study Guide Sessions</button>
+            <button class="secondary" onclick="window.print()">Print PDF</button>
+        </div>
+    </div>
+
+    <!-- ==================== MODE 1: LIVE TEACHER STUDIO ==================== -->
+    <div id="view-teacher" class="app-view active">
+        <div class="teacher-studio">
+            
+            <!-- LEFT SIDE: TEACHER CONTROL PANEL -->
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>⏱️ 60-Minute Session Flow</h3>
+                    <p style="margin:0; font-size: 0.85em; color: #bdc3c7;" id="flow-step-title">Step 1 of 4: Opening & Orientation</p>
+                </div>
+
+                <div class="control-section">
+                    <h3>🗣️ Word-for-Word Teacher Script</h3>
+                    <div class="script-box-teacher" id="teacher-script-text">
+                        "Good morning, everyone. Welcome. Let's dive straight into Daniel Chapter 1..."
+                    </div>
+                    <div class="click-guide" id="click-action-guide">👉 Action: Click 'Next Step' to advance display.</div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🔍 Live Teacher Notes / Evidence</h3>
+                    <p style="font-size: 0.85em; margin: 0; color: #bdc3c7;" id="teacher-notes-reminder">
+                        <strong>Key Focus:</strong> Emphasize historical assimilation.
+                    </p>
+                </div>
+
+                <div class="nav-buttons-studio">
+                    <button onclick="changeStudioStep(-1)">⬅️ Prev Step</button>
+                    <button onclick="changeStudioStep(1)">Next Step ➡️</button>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE: LIVE SHARED CLASS DISPLAY -->
+            <div class="live-screen">
+                <div>
+                    <div class="screen-header">
+                        <h2 id="screen-title">Daniel Chapter 1: Assimilation and Dietary Resolve</h2>
+                        <span class="live-badge">Live Class Display</span>
+                    </div>
+
+                    <div class="scripture-display" id="screen-scripture">
+                        "But Daniel resolved that he would not defile himself with the king's food..."
+                    </div>
+
+                    <div class="screen-body">
+                        <div>
+                            <div class="data-point">
+                                <strong>1. The Explicit Text</strong>
+                                <p id="screen-explicit" style="margin:0;">Nebuchadnezzar captures Jerusalem, takes royal youths, renames them after Babylonian gods...</p>
+                            </div>
+
+                            <div class="data-point">
+                                <strong>2. Historical & Lexicon Context</strong>
+                                <p id="screen-history" style="margin:0;">Renaming captives after deities was state psychological warfare.</p>
+                            </div>
+                        </div>
+
+                        <div class="visual-display-box">
+                            <div style="background: #e5e8e8; height: 100px; display: flex; align-items: center; justify-content: center; font-style: italic; color: #555; border-radius: 4px; margin-bottom: 8px; font-size: 0.9em;">
+                                [ Map Display ]
+                            </div>
+                            <strong id="screen-visual-title" style="font-size: 0.9em;">Deportation Routes (605 BC)</strong>
+                            <p id="screen-visual-desc" style="margin:5px 0 0 0; font-size: 0.8em;">The 900-mile journey forced upon Hebrew captives.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; font-size: 0.75em; color: #95a5a6; border-top: 1px solid #ecf0f1; padding-top: 5px;">
+                    Master Study Guide Planner &bull; Live Studio View
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ==================== MODE 2: DATABASE STUDY PLANNER ==================== -->
+    <div id="view-database" class="app-view">
+        <div class="db-container">
+            <div class="db-wrap" id="db-content">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    // --- DATABASE FOR SESSIONS ---
+    const DANIEL_ASV = {"1": ["In the third year of the reign of Jehoiakim king of Judah came Nebuchadnezzar king of Babylon unto Jerusalem, and besieged it.", "And the Lord gave Jehoiakim king of Judah into his hand, with part of the vessels of the house of God; and he carried them into the land of Shinar to the house of his god: and he brought the vessels into the treasure-house of his god.", "And the king spake unto Ashpenaz the master of his eunuchs, that he should bring in certain of the children of Israel, even of the seed royal and of the nobles;", "youths in whom was no blemish, but well-favored, and skilful in all wisdom, and endued with knowledge, and understanding science, and such as had ability to stand in the king's palace; and that he should teach them the learning and the tongue of the Chaldeans.", "And the king appointed for them a daily portion of the king's dainties, and of the wine which he drank, and that they should be nourished three years; that at the end thereof they should stand before the king.", "Now among these were, of the children of Judah, Daniel, Hananiah, Mishael, and Azariah.", "And the prince of the eunuchs gave names unto them: unto Daniel he gave the name of Belteshazzar; and to Hananiah, of Shadrach; and to Mishael, of Meshach; and to Azariah, of Abed-nego.", "But Daniel purposed in his heart that he would not defile himself with the king's dainties, nor with the wine which he drank: therefore he requested of the prince of the eunuchs that he might not defile himself.", "Now God made Daniel to find kindness and compassion in the sight of the prince of the eunuchs.", "And the prince of the eunuchs said unto Daniel, I fear my lord the king, who hath appointed your food and your drink: for why should he see your faces worse looking than the youths that are of your own age? so would ye endanger my head with the king.", "Then said Daniel to the steward whom the prince of the eunuchs had appointed over Daniel, Hananiah, Mishael, and Azariah:", "Prove thy servants, I beseech thee, ten days; and let them give us pulse to eat, and water to drink.", "Then let our countenances be looked upon before thee, and the countenance of the youths that eat of the king's dainties; and as thou seest, deal with thy servants.", "So he hearkened unto them in this matter, and proved them ten days.", "And at the end of ten days their countenances appeared fairer, and they were fatter in flesh, than all the youths that did eat of the king's dainties.", "So the steward took away their dainties, and the wine that they should drink, and gave them pulse.", "Now as for these four youths, God gave them knowledge and skill in all learning and wisdom: and Daniel had understanding in all visions and dreams.", "And at the end of the days which the king had appointed for bringing them in, the prince of the eunuchs brought them in before Nebuchadnezzar.", "And the king communed with them; and among them all was found none like Daniel, Hananiah, Mishael, and Azariah: therefore stood they before the king.", "And in every matter of wisdom and understanding, concerning which the king inquired of them, he found them ten times better than all the magicians and enchanters that were in all his realm.", "And Daniel continued even unto the first year of king Cyrus."]};
+
+    const SESSIONS = [
+        {
+            "book": "Daniel", "slug": "daniel", "chapterLabel": "Chapter 1 — Daniel's Resolve", "chNum": "1", 
+            "points": [
+                "Daniel's refusal of the king's food (1:8) is about covenant loyalty, not dietary law alone. The 'king's meat' would have been offered to Babylonian gods first — eating it meant participating in pagan worship[span_0](start_span)[span_0](end_span).",
+                "The names Daniel and his friends are given (1:7) all embed Babylonian gods — Belteshazzar ('Bel's prince'), Shadrach, Meshach, Abednego — a real, documented Babylonian practice of renaming captives to erase their identity[span_1](start_span)[span_1](end_span)."
+            ],
+            "refs": ["Leviticus 11 — the dietary laws behind Daniel's specific concern[span_2](start_span)[span_2](end_span)."],
+            "opens": ["Was Daniel's ten-day vegetable test (1:12-14) meant as a repeatable principle, or a one-time sign[span_3](start_span)[span_3](end_span)?"]
+        },
+        {
+            "book": "Daniel", "slug": "daniel", "chapterLabel": "Chapter 2 — Nebuchadnezzar's Statue Dream", "chNum": "2",
+            "points": [
+                "This is the direct blueprint for Revelation's beasts. The four metals represent successive kingdoms (Babylon, Medo-Persia, Greece, Rome)[span_4](start_span)[span_4](end_span)."
+            ],
+            "refs": ["Revelation 13, 17 — beast imagery and mountain-as-kingdom language[span_5](start_span)[span_5](end_span)."],
+            "opens": ["Does the fourth kingdom point to Rome specifically, or a future revived empire[span_6](start_span)[span_6](end_span)?"]
+        }
+    ];
+
+    let dbCurrentSession = 0;
+
+    // --- SWITCH APP MODES ---
+    function switchMode(mode) {
+        document.getElementById('view-teacher').classList.remove('active');
+        document.getElementById('view-database').classList.remove('active');
+        if (mode === 'teacher') {
+            document.getElementById('view-teacher').classList.add('active');
+        } else {
+            document.getElementById('view-database').classList.add('active');
+            renderDatabaseSession();
+        }
+    }
+
+    function jumpToSession(val) {
+        dbCurrentSession = parseInt(val);
+        switchMode('database');
+    }
+
+    // Populate Global Header Dropdown
+    const jumpSel = document.getElementById('global-session-jump');
+    SESSIONS.forEach((s, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Session ${i+1}: ${s.chapterLabel}`;
+        jumpSel.appendChild(opt);
+    });
+
+    // --- LIVE STUDIO WORKFLOW ENGINE ---
+    const studioWorkflow = [
+        {
+            stepTitle: "Step 1 of 4: Opening & Setting the Stage",
+            script: "\"Good morning, everyone. Welcome. Let's dive straight into Daniel Chapter 1. Notice how Babylon didn't just conquer Jerusalem with swords; they tried to conquer their minds by changing their names and feeding them from the king's table.\"",
+            title: "Daniel Chapter 1: The Siege & Identity Re-education",
+            scripture: "\"In the third year of the reign of Jehoiakim... Nebuchadnezzar came to Jerusalem and besieged it...\"",
+            explicit: "Nebuchadnezzar loots the temple, captures royal youths, and systematically re-educates them in Chaldean literature while stripping away their Hebrew names.",
+            history: "Renaming captives after pagan deities (Bel/Marduk) was a calculated tactic to rewrite identity[span_7](start_span)[span_7](end_span)."
+        },
+        {
+            stepTitle: "Step 2 of 4: Deep Dive into Text & Lexicon",
+            script: "\"Look closely at verse 8: 'Daniel resolved that he would not defile himself.' That Hebrew word for defile is *Ga'al*, which means to stain or pollute[span_8](start_span)[span_8](end_span).\"",
+            title: "Daniel Chapter 1: The Dietary Test & Divine Favor",
+            scripture: "\"But Daniel resolved that he would not defile himself with the king's food...\"",
+            explicit: "Daniel proposes a 10-day test of vegetables and water. At the end, the Hebrew youths look healthier and wiser than all state magicians[span_9](start_span)[span_9](end_span).",
+            history: "Royal courts used institutional sages (*chartummim*)[span_10](start_span)[span_10](end_span)."
+        }
+    ];
+
+    let studioIndex = 0;
+
+    function changeStudioStep(dir) {
+        studioIndex += dir;
+        if (studioIndex < 0) studioIndex = 0;
+        if (studioIndex >= studioWorkflow.length) studioIndex = studioWorkflow.length - 1;
+
+        const data = studioWorkflow[studioIndex];
+        document.getElementById('flow-step-title').innerText = data.stepTitle;
+        document.getElementById('teacher-script-text').innerText = data.script;
+        document.getElementById('screen-title').innerText = data.title;
+        document.getElementById('screen-scripture').innerText = data.scripture;
+        document.getElementById('screen-explicit').innerText = data.explicit;
+        document.getElementById('screen-history').innerText = data.history;
+    }
+
+    // --- RENDER DATABASE STUDY SESSIONS ---
+    function renderDatabaseSession() {
+        const s = SESSIONS[dbCurrentSession];
+        const wrap = document.getElementById('db-content');
+        
+        let scriptureHtml = `<a class="scripture-link" href="https://www.biblegateway.com/passage/?search=${s.book}+${s.chNum}&version=KJV" target="_blank">Open ${s.book} ${s.chNum} to read aloud &rarr;</a>`;
+        if (s.book === 'Daniel' && DANIEL_ASV[s.chNum]) {
+            scriptureHtml = '<div class="scripture-text">' + DANIEL_ASV[s.chNum].map((v,i)=>`<span class="vn">${i+1}</span> ${v} `).join('') + '</div>';
+        }
+
+        wrap.innerHTML = `
+            <div class="session-head">
+                <div class="eyebrow">Session ${dbCurrentSession+1} of ${SESSIONS.length} &middot; ${s.book} Study</div>
+                <h1>${s.chapterLabel}</h1>
+                <div class="meta">Target: 60 minutes</div>
+            </div>
+            <div class="block reading">
+                <div class="block-label"><span>Read Aloud First</span><span class="time">~5 min</span></div>
+                ${scriptureHtml}
+                <div class="teacher-note">Leader: read the chapter aloud before discussion.</div>
+            </div>
+            <div class="block discuss">
+                <div class="block-label"><span>Discussion Points</span><span class="time">~20 min</span></div>
+                ${s.points.map(p => `<div class="point">${p}</div>`).join('')}
+            </div>
+            ${s.refs.length ? `<div class="block cross"><div class="block-label"><span>Cross-References</span><span class="time">~10 min</span></div><ul class="refs">${s.refs.map(r => `<li>${r}</li>`).join('')}</ul></div>` : ''}
+            ${s.opens.length ? `<div class="block open"><div class="block-label"><span>Open for Discussion</span><span class="time">~10 min</span></div>${s.opens.map(o => `<div class="point">${o}</div>`).join('')}</div>` : ''}
+            
+            <div class="nav-row">
+                <button onclick="changeDbSession(-1)" ${dbCurrentSession===0?'disabled':''}>&larr; Previous Session</button>
+                <button onclick="changeDbSession(1)" ${dbCurrentSession===SESSIONS.length-1?'disabled':''}>Next Session &rarr;</button>
+            </div>
+        `;
+    }
+
+    function changeDbSession(dir) {
+        dbCurrentSession += dir;
+        if (dbCurrentSession < 0) dbCurrentSession = 0;
+        if (dbCurrentSession >= SESSIONS.length) dbCurrentSession = SESSIONS.length - 1;
+        document.getElementById('global-session-jump').value = dbCurrentSession;
+        renderDatabaseSession();
+    }
+</script>
+
+</body>
+</html>
